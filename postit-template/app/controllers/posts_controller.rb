@@ -1,5 +1,5 @@
 class PostsController < ApplicationController
-  before_action :set_post, only: [:show, :edit, :update]
+  before_action :set_post, only: [:show, :edit, :update, :vote]
   before_action :require_user, except: [:show, :index]
   
   def index
@@ -15,13 +15,14 @@ class PostsController < ApplicationController
   end
 
   def create
+
     @post = Post.new(post_params)
     @post.creator = current_user
 
     if @post.save
       flash[:notice] = "Your post has been submitted."
       redirect_to posts_path
-    elsif 
+    else
       render :new
     end
   end
@@ -38,8 +39,14 @@ class PostsController < ApplicationController
   end
 
   def vote
-    Vote.create(voteable: @post, creator: current_user, vote: params[:vote])
-    flash[:notice] = 'Your vote was counted.'
+    @vote = Vote.create(voteable: @post, creator: current_user, vote: params[:vote])
+
+    if @vote.valid?
+      flash[:notice] = 'Your vote was counted.'
+    else
+      flash[:error] = 'You can only vote on a post once.'
+    end
+    
     redirect_to :back
   end
 
